@@ -1,7 +1,6 @@
 /LEVIR-MCI-dataset/*
-data/
 /video_model/*
 checkpoints/*
 InternVideo2_Chat_8B_InternLM2_5/*
 **__pycache__**
-util/*__pycache__/
+**/tokens/**
