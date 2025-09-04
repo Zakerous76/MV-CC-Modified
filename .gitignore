@@ -4,3 +4,5 @@ checkpoints/*
 InternVideo2_Chat_8B_InternLM2_5/*
 **__pycache__**
 **/tokens/**
+/mv-cc-zaker-venv
+LEVIR-MCI-dataset.zip

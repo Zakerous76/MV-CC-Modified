@@ -91,7 +91,7 @@ This will:
 
 ### 4. Download Pretrained Models
 
-- Download `video_encoder.pth` from this [Google Drive folder](https://drive.google.com/drive/folders/1oZVFSugnaSMSXzSWi_9Z4HYgN7k706VO?usp=sharing), **remove the "Copy of" from the filename**, and place it inside the `checkpoints/` directory.
+- Download `video_encoder.pth` from this [Google Drive folder](https://drive.google.com/drive/folders/1oZVFSugnaSMSXzSWi_9Z4HYgN7k706VO?usp=sharing), and place it inside the `checkpoints/` directory.
 
 > ❗ Note: The original [Baidu link](https://pan.baidu.com/s/1Gd_qykQKy65K6aHSdh5u9A?pwd=t6jk) may not be accessible outside China.
 

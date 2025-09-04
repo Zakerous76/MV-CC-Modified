@@ -283,7 +283,7 @@ if __name__ == '__main__':
     parser.add_argument('--print_freq',type=int, default=100, help='print training/validation stats every __ batches')
     # Training parameters
     parser.add_argument('--fine_tune_encoder', type=bool, default=True, help='whether fine-tune encoder or not')    
-    parser.add_argument('--train_batchsize', type=int, default=32, help='batch_size for training')
+    parser.add_argument('--train_batchsize', type=int, default=64, help='batch_size for training')
     parser.add_argument('--network', default='resnet101', help='define the encoder to extract features')
     parser.add_argument('--encoder_dim',default=2048, help='the dimension of extracted features using different network')
     parser.add_argument('--feat_size', default=16, help='define the output size of encoder to extract features')
@@ -294,7 +294,7 @@ if __name__ == '__main__':
     parser.add_argument('--grad_clip', type=float, default=None, help='clip gradients at an absolute value of.')
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout')
     # Validation
-    parser.add_argument('--val_batchsize', type=int, default=1, help='batch_size for validation')
+    parser.add_argument('--val_batchsize', type=int, default=32, help='batch_size for validation')
     parser.add_argument('--savepath', default="./models_checkpoint/")
     # Model parameters
     parser.add_argument('--n_heads', type=int, default=8, help='Multi-head attention in Transformer.')

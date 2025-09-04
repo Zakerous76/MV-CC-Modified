@@ -20,6 +20,8 @@ SPECIAL_TOKENS = {
 }
 
 def main(args):
+    cwd = os.getcwd()
+    print(cwd)
     if args.dataset == 'LEVIR_CC':
         input_captions_json = './LEVIR-MCI-dataset/LevirCCcaptions.json'
         input_image_dir = './LEVIR-MCI-dataset/images'
