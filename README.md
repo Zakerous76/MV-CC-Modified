@@ -1,5 +1,7 @@
 # MV-CC: Mask Enhanced Video Model for Remote Sensing Change Captioning
 
+<!-- Change -->
+
 **Authors**: Ruixun Liu\*, Kaiyu Li\*, Jiayi Song\*, Dongwei Sun, Xiangyong Cao  
 \*Equal contribution  
 [[arXiv Paper](https://arxiv.org/abs/2410.23946)]
