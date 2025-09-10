@@ -205,8 +205,7 @@ class DecoderTransformer(nn.Module):
         # embedding layer
         self.vocab_embedding = nn.Embedding(vocab_size, self.embed_dim)  # vocaburaly embedding
         # Transformer layer
-        decoder_layer = Mesh_TransformerDecoderLayer(feature_dim, n_head, dim_feedforward=feature_dim * 4,
-                                                   dropout=self.dropout)
+        decoder_layer = Mesh_TransformerDecoderLayer(feature_dim, n_head, dim_feedforward=feature_dim * 4, dropout=self.dropout)
         self.transformer = StackTransformer(decoder_layer, n_layers)
         self.position_encoding = PositionalEncoding(feature_dim, max_len=max_lengths)
 

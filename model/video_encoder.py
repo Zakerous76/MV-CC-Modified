@@ -195,7 +195,6 @@ class Video_encoder(nn.Module):
     """
     Encoder.
     """
-
     def __init__(self, vision_encoder_pretrain='checkpoints/vision_encoder.pth', if_lora=True):
         super(Video_encoder, self).__init__()
         # self.model = torch.load(vision_encoder_pretrain, weights_only=False)
@@ -243,21 +242,21 @@ class Video_encoder(nn.Module):
     
 class Sty_fusion(nn.Module):
     """
-    Encoder.
+    Applies hard mask to the output of vision encoder.
     """
-
     def __init__(self):
         super(Sty_fusion, self).__init__()
-        self.alpha = nn.Parameter(torch.tensor(0.5))
-        
-    def forward(self,video_tensor,mask):
-        mask=mask.view(-1,256)
-        mask=torch.cat((mask,mask),dim=1)
-        
-        mask = torch.nn.functional.pad(mask, (1, 0), 'constant', 0)
-        mask=torch.cat((mask,mask),dim=1).unsqueeze(2)
+        self.alpha = nn.Parameter(torch.tensor(0.5))  # learnable scalar
 
-        return video_tensor*mask#(1-self.alpha)*video_tensor*mask+self.alpha*video_tensor
+    def forward(self, video_tensor, mask):
+        mask = mask.view(-1, 256)                    # flatten mask to (B, 256)
+        mask = torch.cat((mask, mask), dim=1)        # double to (B, 512)
+
+        mask = torch.nn.functional.pad(mask, (1, 0), 'constant', 0)  # pad left: (B, 513)
+        mask = torch.cat((mask, mask), dim=1).unsqueeze(2)           # double again: (B, 1026, 1)
+
+        return video_tensor * mask
+        # OR: (1-self.alpha)*video_tensor*mask + self.alpha*video_tensor
              
 
 class Clip_fusion(nn.Module):

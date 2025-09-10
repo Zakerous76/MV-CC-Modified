@@ -33,6 +33,7 @@ def main(args):
     """
     Testing.
     """
+    # Setup
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     if os.path.exists(args.savepath)==False:
@@ -40,6 +41,7 @@ def main(args):
     with open(os.path.join(args.list_path + args.vocab_file + '.json'), 'r') as f:
         word_vocab = json.load(f)
 
+    # Initialize Models: Build model components
     snapshot_full_path = os.path.join(args.savepath, args.checkpoint)
     print(f'loading dict from{snapshot_full_path}')
     checkpoint = torch.load(snapshot_full_path,weights_only=True,map_location='cpu')
@@ -48,6 +50,7 @@ def main(args):
     decoder = DecoderTransformer_video(encoder_dim=args.encoder_dim, feature_dim=args.feature_dim, vocab_size=len(word_vocab), max_lengths=args.max_length, word_vocab=word_vocab, n_head=args.n_heads,
                     n_layers= args.decoder_n_layers, dropout=args.dropout)
     
+    # Load weights
     video_encoder.load_state_dict(checkpoint['video_encoder_dict'])
     decoder.load_state_dict(checkpoint['decoder_dict'])
     sty_fusion.load_state_dict(checkpoint['sty_fusion_dict'])
@@ -68,21 +71,11 @@ def main(args):
                          "the two scenes seem identical ", "no change has occurred ",
                          "almost nothing has changed "]
         test_loader = data.DataLoader(
-            LEVIRCCDataset_video(args.data_folder, args.list_path, 'test', args.token_folder, args.vocab_file, args.max_length, args.allow_unk,if_mask=True,mask_mode=args.mode),
-            batch_size=args.test_batchsize, shuffle=False, num_workers=args.workers, pin_memory=True)
-    elif args.data_name == 'Dubai_CC':
-        #Dubai:
-        nochange_list = ["Nothing has changed ", "There is no difference ", "All remained the same "
-                            "Everything remains the same ", "Nothing has changed in this area ", "Nothing changed in this area "
-                            "No changes in this area ", "No change was made ", "There is no change to mention ", "No changes to mention "
-                            "No changed to mention ", "No difference in this area ", "No change to mention "
-                            "No change was made ", "No change occurred in this area ", "The area appears the same "]
-        test_loader = data.DataLoader(
-            DubaiCCDataset(args.data_folder, args.list_path, 'val', args.token_folder, args.vocab_file, args.max_length, args.allow_unk),
-            batch_size=args.test_batchsize, shuffle=False, num_workers=args.workers, pin_memory=True)
-    l_resize1 = torch.nn.Upsample(size = (256, 256), mode ='bilinear', align_corners = True)
-    l_resize2 = torch.nn.Upsample(size = (256, 256), mode ='bilinear', align_corners = True)
-    # Epochs
+            LEVIRCCDataset_video(args.data_folder, args.list_path, 'test', args.token_folder, args.vocab_file, args.max_length, 
+                                 args.allow_unk,if_mask=True,mask_mode=args.mode),
+                                 batch_size=args.test_batchsize, shuffle=False, num_workers=args.workers, pin_memory=True)
+    
+    # Initialize Metrics Containers
     test_start_time = time.time()
     references = list()  # references (true captions) for calculating BLEU-4 score
     hypotheses = list()  # hypotheses (predictions)
@@ -92,29 +85,32 @@ def main(args):
     nochange_hypotheses = list()
     change_acc=0
     nochange_acc=0
+
+
     print(f'test begin! {len(test_loader)} pictures to test')
     with torch.no_grad():
-        # Batches
+        # Inference Loop: Batches
         for ind, (video_tensor, token_all, token_all_len, _, _,name, mask) in tqdm(enumerate(test_loader)):
 
             # Move to GPU, if available
             video_tensor=video_tensor.cuda()
             mask=mask.cuda()
-            vedie_emb,_=video_encoder(video_tensor)
 
+            # Create embeddings -> Mask
+            vedie_emb,_=video_encoder(video_tensor)
             vedie_emb=sty_fusion(vedie_emb,mask)
             token_all = token_all.squeeze(0).cuda()
 
-            # Forward prop.
-            
+            # Forward prop: Predict
             seq = decoder.sample(vedie_emb, k=1)
-            
 
+            # Collect ground-truth
             img_token = token_all.tolist()
             img_tokens = list(map(lambda c: [w for w in c if w not in {word_vocab['<START>'], word_vocab['<END>'], word_vocab['<NULL>']}],
                     img_token))  # remove <start> and pads
             references.append(img_tokens)
 
+            # Collect prediction
             pred_seq = [w for w in seq if w not in {word_vocab['<START>'], word_vocab['<END>'], word_vocab['<NULL>']}]
             hypotheses.append(pred_seq)
             assert len(references) == len(hypotheses)
@@ -132,6 +128,7 @@ def main(args):
                     ref_captions += (list(word_vocab.keys())[j]) + " "
                 ref_captions += ".    "
 
+            # Classify as "no-change" or "change":
             if ref_caption in nochange_list:
                 nochange_references.append(img_tokens)
                 nochange_hypotheses.append(pred_seq)
@@ -145,8 +142,8 @@ def main(args):
 
 
         test_time = time.time() - test_start_time
+        
         # Calculate evaluation scores
-
         if len(nochange_references)>0:
             print('nochange_metric:')
             nochange_metric = get_eval_score(nochange_references, nochange_hypotheses)
@@ -205,14 +202,6 @@ if __name__ == '__main__':
                         help='path to checkpoint, None if none.')
     parser.add_argument('--mode', default='label',
                     help='path to checkpoint, None if none.')
-    #parser.add_argument('--data_folder', default='./Dubai_CC/DubaiCC500impair/datasetDubaiCCPublic/imgs_tiles/RGB/',help='folder with data files')
-    #parser.add_argument('--list_path', default='./data/Dubai_CC/', help='path of the data lists')
-    #parser.add_argument('--token_folder', default='./data/Dubai_CC/tokens/', help='folder with token files')
-    #parser.add_argument('--vocab_file', default='vocab', help='path of the data lists')
-    #parser.add_argument('--max_length', type=int, default=27, help='path of the data lists')
-    #parser.add_argument('--allow_unk', type=int, default=0, help='path of the data lists')
-    #parser.add_argument('--data_name', default="Dubai_CC",help='base name shared by data files.')
-    #parser.add_argument('--checkpoint', default='Dubai_CC_batchsize_32_resnet101.pth', help='path to checkpoint, None if none.')
 
     parser.add_argument('--network', default='resnet101', help='define the encoder to extract features:resnet101,vgg16')
     parser.add_argument('--gpu_id', type=int, default=0, help='gpu id in the training.')

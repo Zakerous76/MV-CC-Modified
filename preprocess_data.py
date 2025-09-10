@@ -1,3 +1,9 @@
+"""
+This module preprocess captions of the LEVIR MCI dataset and saves them to `./data`. 
+Two main tasks are:
+    1. Extracting the captions, tokenizes (string), and saves them in .txt files
+    2. Building a vocabulary (token-ids) ⇒ `vocab.json`
+"""
 import sys
 import os
 sys.path.insert(0, os.path.abspath('.'))
@@ -28,12 +34,12 @@ def main(args):
         input_vocab_json = ''
         output_vocab_json = 'vocab.json'
         save_dir = './data/LEVIR_CC/'
-    elif args.dataset == 'Dubai_CC':
-        input_captions_json = './Dubai_CC/DubaiCC500impair/datasetDubaiCCPublic/description_jsontr_te_val/'
-        input_image_dir = './Dubai_CC/DubaiCC500impair/datasetDubaiCCPublic/RGB'
-        input_vocab_json = ''
-        output_vocab_json = 'vocab.json'
-        save_dir = './data/Dubai_CC/'
+    # elif args.dataset == 'Dubai_CC':
+    #     input_captions_json = './Dubai_CC/DubaiCC500impair/datasetDubaiCCPublic/description_jsontr_te_val/'
+    #     input_image_dir = './Dubai_CC/DubaiCC500impair/datasetDubaiCCPublic/RGB'
+    #     input_vocab_json = ''
+    #     output_vocab_json = 'vocab.json'
+    #     save_dir = './data/Dubai_CC/'
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     if not os.path.exists(os.path.join(save_dir + 'tokens/')):
@@ -74,15 +80,16 @@ def main(args):
             f.write(tokens_list)
             f.close()
 
-
-        #Considering each image pair has 5 annotations, two strategies can be adopted to generate list for training:
-        # a: creating training list with a self-defined token_id[0:4], each token list corresponds to specific captions;
-        # or b: randomly select one of the five captions during training;
+            """ 
+                Considering each image pair has 5 annotations, two strategies can be adopted to generate list for training:
+                a: creating training list with a self-defined token_id[0:4], each token list corresponds to specific captions;
+                or b: randomly select one of the five captions during training;
           
-        #    if i.split('_')[0] == 'train':
-        #        f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
-        #        f.write(img + '\n')
-        #        f.close
+            if i.split('_')[0] == 'train':
+               f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
+               f.write(img + '\n')
+               f.close 
+            """
 
             if i.split('_')[0] == 'train':
                 f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
@@ -99,67 +106,62 @@ def main(args):
                 f.write(img + '\n')
                 f.close()     
 
+    # elif args.dataset == 'Dubai_CC': 
+    #     filename = os.listdir(input_captions_json)
+    #     max_length = -1
+    #     all_cap_tokens = []
 
+    #     for j in range(len(filename)):
+    #         s_cap_tokens = []      
+    #         caption_json = os.path.join(input_captions_json, filename[j])
+    #         with open(caption_json, 'r') as f:
+    #             data = json.load(f)
+    #         for img in data['images']:
+    #             captions = []
+    #             for c in img['sentences']:
+    #                 # Update word frequency
+    #                 assert len(c['raw']) > 0, 'error: some image has no caption'
+    #                 captions.append(c['raw'])
+    #             tokens_list = []  
+    #             for cap in captions:
+    #                 cap_tokens = tokenize(cap,
+    #                                     add_start_token=True,
+    #                                     add_end_token=True,
+    #                                     punct_to_keep=[';', ','],
+    #                                     punct_to_remove=['?', '.'])
+    #                 tokens_list.append(cap_tokens)
+    #                 max_length = max(max_length, len(cap_tokens))
+    #             s_cap_tokens.append((img['filename'], tokens_list))
+    #             all_cap_tokens.append((img['filename'], tokens_list))
+    #         # Then save the tokenized captions in txt
+    #         print('Saving captions')
+    #         for img, tokens_list in s_cap_tokens:
+    #             i = img.split('.')[0]
+    #             token_len = len(tokens_list)
+    #             tokens_list = json.dumps(tokens_list)
+    #             f = open(os.path.join(save_dir + 'tokens/' + i + '.txt'), 'w')
+    #             f.write(tokens_list)
+    #             f.close()     
 
+    #             #if filename[j].split('_')[0] == 'Train':
+    #             #    f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
+    #             #    f.write(img + '\n')
+    #             #    f.close
 
-    elif args.dataset == 'Dubai_CC': 
-        filename = os.listdir(input_captions_json)
-        max_length = -1
-        all_cap_tokens = []
+    #             if filename[j].split('_')[0] == 'Train':
+    #                 f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
+    #                 for s in range(token_len):
+    #                     f.write(img + '-' + str(s) + '\n')
+    #                 f.close
 
-        for j in range(len(filename)):
-            s_cap_tokens = []      
-            caption_json = os.path.join(input_captions_json, filename[j])
-            with open(caption_json, 'r') as f:
-                data = json.load(f)
-            for img in data['images']:
-                captions = []
-                for c in img['sentences']:
-                    # Update word frequency
-                    assert len(c['raw']) > 0, 'error: some image has no caption'
-                    captions.append(c['raw'])
-                tokens_list = []  
-                for cap in captions:
-                    cap_tokens = tokenize(cap,
-                                        add_start_token=True,
-                                        add_end_token=True,
-                                        punct_to_keep=[';', ','],
-                                        punct_to_remove=['?', '.'])
-                    tokens_list.append(cap_tokens)
-                    max_length = max(max_length, len(cap_tokens))
-                s_cap_tokens.append((img['filename'], tokens_list))
-                all_cap_tokens.append((img['filename'], tokens_list))
-            # Then save the tokenized captions in txt
-            print('Saving captions')
-            for img, tokens_list in s_cap_tokens:
-                i = img.split('.')[0]
-                token_len = len(tokens_list)
-                tokens_list = json.dumps(tokens_list)
-                f = open(os.path.join(save_dir + 'tokens/' + i + '.txt'), 'w')
-                f.write(tokens_list)
-                f.close()     
-
-                #if filename[j].split('_')[0] == 'Train':
-                #    f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
-                #    f.write(img + '\n')
-                #    f.close
-
-                if filename[j].split('_')[0] == 'Train':
-                    f = open(os.path.join(save_dir + 'train' + '.txt'), 'a')
-                    for s in range(token_len):
-                        f.write(img + '-' + str(s) + '\n')
-                    f.close
-
-                elif filename[j].split('_')[0] == 'Validation':
-                    f = open(os.path.join(save_dir + 'val' + '.txt'), 'a')
-                    f.write(img + '\n')
-                    f.close()
-                elif filename[j].split('_')[0] == 'Test':
-                    f = open(os.path.join(save_dir + 'test' + '.txt'), 'a')
-                    f.write(img + '\n')
-                    f.close()   
-
- 
+    #             elif filename[j].split('_')[0] == 'Validation':
+    #                 f = open(os.path.join(save_dir + 'val' + '.txt'), 'a')
+    #                 f.write(img + '\n')
+    #                 f.close()
+    #             elif filename[j].split('_')[0] == 'Test':
+    #                 f = open(os.path.join(save_dir + 'test' + '.txt'), 'a')
+    #                 f.write(img + '\n')
+    #                 f.close()   
 
     print('max_length of the dataset:', max_length)
     # Either create the vocab or load it from disk

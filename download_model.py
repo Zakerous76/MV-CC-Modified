@@ -1,4 +1,6 @@
-# A script to download the InternVideo2_Chat_8B_InternLM2_5 and save it locally
+"""
+Downloads the OpenGVLab/InternVideo2_Chat_8B_InternLM2_5 from huggingface and saves it to ./InternVideo2_Chat_8B_InternLM2_5 
+"""
 from huggingface_hub import snapshot_download
 import os
 
